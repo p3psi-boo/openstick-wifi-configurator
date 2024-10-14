@@ -1,0 +1,14 @@
+[package]
+name = "openstick-wifi-configurator"
+version = "0.1.0"
+edition = "2021"
+authors = ["Bubu <me@jinpeng.boo>"]
+description = "OpenStick WiFi Configurator"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+bluer = { version = "0.17.3", features = ["full"] }
+uuid = "1.6.0"
+env_logger = "0.11.5"
+num-traits = "0.2.19"
+futures = "0.3.31"
