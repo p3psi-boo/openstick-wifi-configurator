@@ -7,7 +7,9 @@ use bluer::{
         CharacteristicRead, CharacteristicWrite, CharacteristicWriteMethod, Service,
     },
 };
+use clap::Parser;
 use futures::FutureExt;
+use log::info;
 use std::{collections::BTreeMap, sync::Arc, time::Duration};
 use tokio::{
     io::{AsyncBufReadExt, BufReader},
@@ -17,14 +19,29 @@ use tokio::{
 
 include!("gatt.inc");
 
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Config {
+    #[arg(short, long)]
+    adapter: String,
+    #[arg(short, long)]
+    device_name: String,
+    #[arg(short, long)]
+    wlan_interface: String,
+    #[arg(short, long)]
+    auth_token: String,
+}
+
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> bluer::Result<()> {
     env_logger::init();
-    let session = bluer::Session::new().await?;
-    let adapter = session.default_adapter().await?;
-    adapter.set_powered(true).await?;
 
-    println!(
+    let config = Config::parse();
+    let session = bluer::Session::new().await?;
+    let adapter = session.adapter(&config.adapter)?;
+
+    adapter.set_powered(true).await?;
+    info!(
         "Advertising on Bluetooth adapter {} with address {}",
         adapter.name(),
         adapter.address().await?
@@ -35,7 +52,7 @@ async fn main() -> bluer::Result<()> {
         service_uuids: vec![SERVICE_UUID].into_iter().collect(),
         manufacturer_data,
         discoverable: Some(true),
-        local_name: Some("gatt_server".to_string()),
+        local_name: Some(config.device_name),
         ..Default::default()
     };
     let adv_handle = adapter.advertise(le_advertisement).await?;
